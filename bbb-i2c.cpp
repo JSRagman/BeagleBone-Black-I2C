@@ -12,7 +12,7 @@
  */
 
 
-#include "bbb-i2c.h"
+#include "bbb-i2c.hpp"
 
 #include <fcntl.h>
 #include <iomanip>
@@ -36,7 +36,8 @@ namespace bbbi2c
  *
  * Description:
  *   Constructor.  Sets the error message and the name of the
- *   exception's originating process (function).
+ *   exception's originating process (function). Records the
+ *   time of the exception.
  *
  * Parameters:
  *   msg  - An error message. This is what will be returned
@@ -48,12 +49,13 @@ namespace bbbi2c
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 I2CException::I2CException(const string& msg, const string& proc)
 {
-	message  = msg;
-	procname = proc;
+	message    = msg;
+	procname   = proc;
+	timeof_exc = time(nullptr);
 }
 
 /*
@@ -66,7 +68,7 @@ I2CException::I2CException(const string& msg, const string& proc)
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 const char* I2CException::what()
 {
@@ -85,7 +87,7 @@ const char* I2CException::what()
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 string I2CException::why()
 {
@@ -93,7 +95,7 @@ string I2CException::why()
 }
 
 /*
- * string I2CException::where()
+ * string I2CException::who()
  *
  * Description:
  *   Returns the name of the exception's originating
@@ -103,12 +105,59 @@ string I2CException::why()
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
-string I2CException::where()
+string I2CException::who()
 {
 	return procname;
 }
+
+/*
+ * time_t I2CException::when()
+ *
+ * Description:
+ *   Returns the exception's time stamp.
+ *
+ * Namespace:
+ *   bbbi2c
+ *
+ * Header File(s):
+ *   bbb-i2c.hpp
+ */
+time_t I2CException::when()
+{
+	return timeof_exc;
+}
+
+
+// I2CNotFoundException
+// ------------------------------------------------------------------
+
+/*
+ * I2CNotFoundException::I2CNotFoundException(const string& msg, const string& proc)
+ *
+ * Description:
+ *   Constructor. Initializes the base I2CException.
+ *
+ *   The I2CNotFoundException's reason for existence is to distinguish
+ *   between the severity of an I2C bus that won't open and an I2C device
+ *   that doesn't respond.
+ *
+ * Parameters:
+ *   msg  - An error message. This is what will be returned
+ *          by what() and why().
+ *   proc - A procedure or function name. This is what will be
+ *          returned by who().
+ *
+ * Namespace:
+ *   bbbi2c
+ *
+ * Header File(s):
+ *   bbb-i2c.hpp
+ */
+I2CNotFoundException::I2CNotFoundException(const string& msg, const string& proc)
+    : I2CException(msg, proc)
+{ }
 
 
 
@@ -132,7 +181,7 @@ string I2CException::where()
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 I2CBus::I2CBus(const char* bus)
 {
@@ -151,7 +200,7 @@ I2CBus::I2CBus(const char* bus)
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 I2CBus::~I2CBus()
 {
@@ -167,24 +216,20 @@ I2CBus::~I2CBus()
  *
  * Description:
  *   Opens a connection to the device specified by the addr
- *   parameter. Throws an I2CException if the bus cannot be
- *   opened or if the target device does not respond.
- *
- *   Consider using a separate I2C "Not Found" exception
- *   to distinguish the lesser severity of a device that
- *   does not respond.
+ *   parameter.
  *
  * Parameters:
  *   addr - A device address.
  *
  * Exceptions:
  *   I2CException
+ *   I2CNotFoundException
  *
  * Namespace:
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 void I2CBus::Open(uint8_t addr)
 {
@@ -206,9 +251,9 @@ void I2CBus::Open(uint8_t addr)
 
 		stringstream ss;
 		ss << "Unable to find device address ";
-		ss << "0x" << hex << uppercase << setfill('0') << setw(2) << ((unsigned int)addr);
-		I2CException iexc(proc, ss.str());
-		throw iexc;
+		ss << "0x" << hex << uppercase << setfill('0') << setw(2) << (unsigned int)addr;
+		I2CNotFoundException infexc(proc, ss.str());
+		throw infexc;
 	}
 }
 
@@ -225,7 +270,7 @@ void I2CBus::Open(uint8_t addr)
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 void I2CBus::Close()
 {
@@ -265,12 +310,13 @@ void I2CBus::Close()
  *
  * Exceptions:
  *   I2CException
+ *   I2CNotFoundException
  *
  * Namespace:
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
 {
@@ -304,12 +350,13 @@ void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
  *
  * Exceptions:
  *   I2CException
+ *   I2CNotFoundException
  *
  * Namespace:
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
 {
@@ -342,12 +389,13 @@ void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
  *
  * Exceptions:
  *   I2CException
+ *   I2CNotFoundException
  *
  * Namespace:
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 void I2CBus::Write(const string& dat, uint8_t addr)
 {
@@ -384,12 +432,13 @@ void I2CBus::Write(const string& dat, uint8_t addr)
  *
  * Exceptions:
  *   I2CException
+ *   I2CNotFoundException
  *
  * Namespace:
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr)
 {
@@ -432,18 +481,19 @@ void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2ca
  *
  * Exceptions:
  *   I2CException
+ *   I2CNotFoundException
  *
  * Namespace:
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
 {
 	lock_guard<mutex> lck(mtx);
 
-	string proc = "I2CConnection::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)";
+	string proc = "I2CConnection::Xfer(addr, idat, ilen, i2caddr)";
 
 	int sent  =  0;
 	int recvd =  0;
@@ -466,7 +516,5 @@ void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
 		throw iexc;
 	}
 }
-
-
 
 } // namespace bbbi2c

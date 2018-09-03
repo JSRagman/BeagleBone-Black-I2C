@@ -1,20 +1,15 @@
 /*
- * C++
- * bbb-i2c.h
+ * bbb-i2c.hpp
  *
- *  Created on: Aug 26, 2018
+ *  Created on: Sep 2, 2018
  *      Author: JSRagman
  *
  *  Description:
- *    BeagleBone Black I2C bus and supporting classes.
- *
- *  NOTE:
- *    This header was written by JSRagman, who is NOT a professional
- *    programmer.  Use it, if you like, but don't stake your life on it.
+ *    BeagleBone Black I2C bus header.
  */
 
-#ifndef BBB_I2C_H_
-#define BBB_I2C_H_
+#ifndef BBB_I2C_HPP_
+#define BBB_I2C_HPP_
 
 
 #include <exception>
@@ -41,8 +36,8 @@ namespace bbbi2c
  * Description:
  *   Represents an I2C process error.
  *
- *   Provides an error message and the name of the process
- *   where the mishap occurred.
+ *   Provides an error message, the name of the process
+ *   where the mishap occurred, and a time stamp.
  *
  * Namespace:
  *   bbbi2c
@@ -55,15 +50,23 @@ class I2CException : public std::exception
 protected:
 	string message;
 	string procname;
+	time_t timeof_exc;
 
 public:
 	I2CException (const string& msg, const string& proc);
 
 	const char* what();
-	string where ();
-	string why   ();
+	string who ();
+	string why ();
+	time_t when ();
 };
 
+
+class I2CNotFoundException : public I2CException
+{
+public:
+	I2CNotFoundException ( const string& msg, const string& proc );
+};
 
 
 /*
@@ -71,6 +74,10 @@ public:
  *
  * Description:
  *   Represents a BeagleBone Black I2C bus.
+ *
+ *   The intention here is that I2C Read, Write, and Xfer
+ *   functions should open a connection, do their business,
+ *   and then close the connection on exit.
  *
  * Namespace:
  *   bbbi2c
@@ -81,7 +88,6 @@ public:
 class I2CBus
 {
 protected:
-
 	const char*  busfile;        // I2C bus file name.
 	int          file;           // File descriptor.
 
@@ -89,24 +95,20 @@ protected:
 	void Close ();
 
 public:
-
 	std::mutex mtx;
 
 	I2CBus ( const char* bus );
 	~I2CBus ();
 
-	void Read ( uint8_t* data, int len, uint8_t i2caddr );
-
+	void Read  ( uint8_t* data, int len, uint8_t i2caddr );
 	void Write ( uint8_t* data, int len, uint8_t i2caddr );
 	void Write ( const string& dat, uint8_t i2caddr );
-
-	void Xfer ( uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr );
-	void Xfer ( uint8_t  addr, uint8_t* idat, int ilen, uint8_t i2caddr);
+	void Xfer  ( uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr );
+	void Xfer  ( uint8_t  addr, uint8_t* idat, int ilen, uint8_t i2caddr );
 
 }; // class I2CBus
 
 
-
 } // namespace bbbi2c
 
-#endif /* BBB_I2C_H_ */
+#endif /* BBB_I2C_HPP_ */
