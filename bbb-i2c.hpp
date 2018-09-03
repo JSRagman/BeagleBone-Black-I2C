@@ -43,7 +43,7 @@ namespace bbbi2c
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 class I2CException : public std::exception
 {
@@ -83,7 +83,7 @@ public:
  *   bbbi2c
  *
  * Header File(s):
- *   bbb-i2c.h
+ *   bbb-i2c.hpp
  */
 class I2CBus
 {
