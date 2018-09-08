@@ -1,3 +1,4 @@
+```
 /*
  * bbb-i2c.cpp
  *
@@ -16,7 +17,6 @@
 #include <iomanip>           // hex, uppercase, setfill(), setw()
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>   // I2C_SLAVE
-#include <mutex>             // mutex, lock_guard()
 #include <sstream>           // stringstream
 #include <stdint.h>          // int8_t, uint8_t
 #include <string>            // string
@@ -53,9 +53,9 @@ namespace bbbi2c
  */
 I2CException::I2CException(const string& msg, const string& proc)
 {
-	message    = msg;
-	procname   = proc;
-	timeof_exc = time(nullptr);
+    message    = msg;
+    procname   = proc;
+    timeof_exc = time(nullptr);
 }
 
 /*
@@ -72,7 +72,7 @@ I2CException::I2CException(const string& msg, const string& proc)
  */
 const char* I2CException::what()
 {
-	return message.c_str();
+    return message.c_str();
 }
 
 /*
@@ -91,7 +91,7 @@ const char* I2CException::what()
  */
 string I2CException::why()
 {
-	return message;
+    return message;
 }
 
 /*
@@ -109,7 +109,7 @@ string I2CException::why()
  */
 string I2CException::who()
 {
-	return procname;
+    return procname;
 }
 
 /*
@@ -126,7 +126,7 @@ string I2CException::who()
  */
 time_t I2CException::when()
 {
-	return timeof_exc;
+    return timeof_exc;
 }
 
 
@@ -185,8 +185,8 @@ I2CNotFoundException::I2CNotFoundException(const string& msg, const string& proc
  */
 I2CBus::I2CBus(const char* bus)
 {
-	busfile = bus;
-	file    = -1;
+    busfile = bus;
+    file    = -1;
 }
 
 /*
@@ -204,7 +204,7 @@ I2CBus::I2CBus(const char* bus)
  */
 I2CBus::~I2CBus()
 {
-	this->Close();
+    this->Close();
 }
 
 
@@ -233,26 +233,25 @@ I2CBus::~I2CBus()
  */
 void I2CBus::Open(uint8_t addr)
 {
-	file = ::open(busfile, O_RDWR);
-	if (file < 0)
-	{
-		stringstream ss;
-		ss << "Unable to open I2C Bus file " << busfile;
-		I2CException iexc("I2CBus::Open(addr)", ss.str());
-		throw iexc;
-	}
+    file = ::open(busfile, O_RDWR);
+    if (file < 0)
+    {
+        stringstream ss;
+        ss << "Unable to open I2C Bus file " << busfile;
+        I2CException iexc("I2CBus::Open(addr)", ss.str());
+        throw iexc;
+    }
 
-	int ioresult = ioctl(file, I2C_SLAVE, addr);
-	if (ioresult < 0)
-	{
-		this->Close();
-
-		stringstream ss;
-		ss << "Unable to find device address ";
-		ss << "0x" << hex << uppercase << setfill('0') << setw(2) << (unsigned int)addr;
-		I2CNotFoundException nfexc("I2CBus::Open(addr)", ss.str());
-		throw nfexc;
-	}
+    int ioresult = ioctl(file, I2C_SLAVE, addr);
+    if (ioresult < 0)
+    {
+        this->Close();
+        stringstream ss;
+        ss << "Unable to find device address ";
+        ss << "0x" << hex << uppercase << setfill('0') << setw(2) << (unsigned int)addr;
+        I2CNotFoundException nfexc("I2CBus::Open(addr)", ss.str());
+        throw nfexc;
+    }
 }
 
 /*
@@ -269,21 +268,21 @@ void I2CBus::Open(uint8_t addr)
  */
 void I2CBus::Close()
 {
-	errno = 0;
+    errno = 0;
 
-	if (file != -1)
-	{
-		int closeresult = ::close(file);
-		if (closeresult < 0)
-		{
-			if (errno == EINTR)
-			{
-				TEMP_FAILURE_RETRY (::close(file));
-			}
-		}
+    if (file != -1)
+    {
+        int closeresult = ::close(file);
+        if (closeresult < 0)
+        {
+            if (errno == EINTR)
+            {
+                TEMP_FAILURE_RETRY (::close(file));
+            }
+        }
 
-		file = -1;
-	}
+        file = -1;
+    }
 }
 
 
@@ -295,8 +294,7 @@ void I2CBus::Close()
  * void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
  *
  * Description:
- *   Gets posession of the I2CBus and then reads one or more
- *   bytes from the device at the specified address.
+ *   Reads one or more bytes from the device at the specified address.
  *
  * Parameters:
  *   data - a buffer to receive data
@@ -315,27 +313,24 @@ void I2CBus::Close()
  */
 void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
 {
-	int recvd = 0;
+    int recvd = 0;
 
-	lock_guard<mutex> lck(mtx);
+    this->Open(addr);
+    recvd = ::read(file, data, len);
+    this->Close();
 
-	this->Open(addr);
-	recvd = ::read(file, data, len);
-	this->Close();
-
-	if (recvd != len)
-	{
-		I2CException iexc("I2CBus::Read(data, len, addr)", "Read length error.");
-		throw iexc;
-	}
+    if (recvd != len)
+    {
+        I2CException iexc("I2CBus::Read(data, len, addr)", "Read length error.");
+        throw iexc;
+    }
 }
 
 /*
  * void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
  *
  * Description:
- *   Gets posession of the I2CBus and then writes one or more
- *   bytes to the device at the specified address.
+ *   Writes one or more bytes to the device at the specified address.
  *
  * Parameters:
  *   data - a buffer containing data to be written
@@ -354,27 +349,24 @@ void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
  */
 void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
 {
-	int sent = 0;
+    int sent = 0;
 
-	lock_guard<mutex> lck(mtx);
+    this->Open(addr);
+    sent = ::write(file, data, len);
+    this->Close();
 
-	this->Open(addr);
-	sent = ::write(file, data, len);
-	this->Close();
-
-	if (sent != len)
-	{
-		I2CException iexc("I2CBus::Write(data, len, addr)", "Write length error.");
-		throw iexc;
-	}
+    if (sent != len)
+    {
+        I2CException iexc("I2CBus::Write(data, len, addr)", "Write length error.");
+        throw iexc;
+    }
 }
 
 /*
  * void I2CBus::Write(const string& dat, uint8_t addr)
  *
  * Description:
- *   Gets posession of the I2CBus and then writes string
- *   data to the device at the specified address.
+ *   Writes string data to the device at the specified address.
  *
  * Parameters:
  *   dat  - a string containing data to be written
@@ -392,28 +384,26 @@ void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
  */
 void I2CBus::Write(const string& dat, uint8_t addr)
 {
-	int len  = dat.size();
-	int sent = 0;
+    int len  = dat.size();
+    int sent = 0;
 
-	lock_guard<mutex> lck(mtx);
+    this->Open(addr);
+    sent = ::write(file, dat.c_str(), len);
+    this->Close();
 
-	this->Open(addr);
-	sent = ::write(file, dat.c_str(), len);
-	this->Close();
-
-	if (sent != len)
-	{
-		I2CException iexc("I2CBus::Write(dat, addr)", "Write length error.");
-		throw iexc;
-	}
+    if (sent != len)
+    {
+        I2CException iexc("I2CBus::Write(dat, addr)", "Write length error.");
+        throw iexc;
+    }
 }
 
 /*
  * void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr)
  *
  * Description:
- *   Gets posession of the I2CBus, writes one or more bytes to the device, and
- *   then reads one or more bytes from the device.
+ *   Writes one or more bytes to the device, and then reads one or more bytes
+ *   from the device at the specified I2C address.
  *
  * Parameters:
  *   odat    - data buffer that contains the data to be written
@@ -434,34 +424,32 @@ void I2CBus::Write(const string& dat, uint8_t addr)
  */
 void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr)
 {
-	int count = 0;
+    int count = 0;
 
-	lock_guard<mutex> lck(mtx);
+    this->Open(i2caddr);
+    count = ::write(file, odat, olen);
+    if (count != olen)
+    {
+        this->Close();
+        I2CException iexc("I2CConnection::Xfer(odat, olen, idat, ilen, i2caddr)", "Write length error.");
+        throw iexc;
+    }
 
-	this->Open(i2caddr);
-	count = ::write(file, odat, olen);
-	if (count != olen)
-	{
-		this->Close();
-		I2CException iexc("I2CConnection::Xfer(odat, olen, idat, ilen, i2caddr)", "Write length error.");
-		throw iexc;
-	}
-
-	count = ::read(file, idat, ilen);
-	this->Close();
-	if (count != ilen)
-	{
-		I2CException iexc("I2CConnection::Xfer(odat, olen, idat, ilen, i2caddr)", "Read length error.");
-		throw iexc;
-	}
+    count = ::read(file, idat, ilen);
+    this->Close();
+    if (count != ilen)
+    {
+        I2CException iexc("I2CConnection::Xfer(odat, olen, idat, ilen, i2caddr)", "Read length error.");
+        throw iexc;
+    }
 }
 
 /*
  * void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
  *
  * Description:
- *   Gets posession of the I2CBus, writes one byte to the device, and
- *   then reads one or more bytes from the device.
+ *   Writes one byte to the device, and then reads one or more bytes from
+ *   the device at the specified I2C address.
  *
  * Parameters:
  *   addr    - one byte of data to be written to the device
@@ -481,26 +469,25 @@ void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2ca
  */
 void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
 {
-	int count = 0;
+    int count = 0;
 
-	lock_guard<mutex> lck(mtx);
+    this->Open(i2caddr);
+    count = ::write(file, &addr, 1);
+    if (count != 1)
+    {
+        this->Close();
+        I2CException iexc("I2CConnection::Xfer(addr, idat, ilen, i2caddr)", "Write length error.");
+        throw iexc;
+    }
 
-	this->Open(i2caddr);
-	count = ::write(file, &addr, 1);
-	if (count != 1)
-	{
-		this->Close();
-		I2CException iexc("I2CConnection::Xfer(addr, idat, ilen, i2caddr)", "Write length error.");
-		throw iexc;
-	}
-
-	count = ::read(file, idat, ilen);
-	this->Close();
-	if (count != ilen)
-	{
-		I2CException iexc("I2CConnection::Xfer(addr, idat, ilen, i2caddr)", "Read length error.");
-		throw iexc;
-	}
+    count = ::read(file, idat, ilen);
+    this->Close();
+    if (count != ilen)
+    {
+        I2CException iexc("I2CConnection::Xfer(addr, idat, ilen, i2caddr)", "Read length error.");
+        throw iexc;
+    }
 }
 
 } // namespace bbbi2c
+```
