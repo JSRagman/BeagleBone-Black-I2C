@@ -20,6 +20,7 @@
 #include <iomanip>           // hex, uppercase, setfill(), setw()
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>   // I2C_SLAVE
+#include <mutex>             // mutex, lock_guard
 #include <sstream>           // stringstream
 #include <stdint.h>          // int8_t, uint8_t
 #include <string>            // string
