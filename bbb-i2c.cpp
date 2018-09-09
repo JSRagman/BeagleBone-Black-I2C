@@ -5,6 +5,9 @@
  *  Created on: Aug 26, 2018
  *      Author: JSRagman
  *
+ *  Revised:
+ *    9 Sept, 2018
+ *
  *  Description:
  *    Implements BeagleBone Black I2C bus and supporting classes.
  */
@@ -294,7 +297,8 @@ void I2CBus::Close()
  * void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
  *
  * Description:
- *   Reads one or more bytes from the device at the specified address.
+ *   Acquires posession of the I2C bus and reads one or more bytes
+ *   from the device at the specified address.
  *
  * Parameters:
  *   data - a buffer to receive data
@@ -313,6 +317,8 @@ void I2CBus::Close()
  */
 void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
 {
+	lock_guard<mutex> lck(mtx);
+
     int recvd = 0;
 
     this->Open(addr);
@@ -330,7 +336,8 @@ void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
  * void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
  *
  * Description:
- *   Writes one or more bytes to the device at the specified address.
+ *   Acquires posession of the I2C bus and writes one or more bytes
+ *   to the device at the specified address.
  *
  * Parameters:
  *   data - a buffer containing data to be written
@@ -349,6 +356,8 @@ void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
  */
 void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
 {
+	lock_guard<mutex> lck(mtx);
+
     int sent = 0;
 
     this->Open(addr);
@@ -366,7 +375,8 @@ void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
  * void I2CBus::Write(const string& dat, uint8_t addr)
  *
  * Description:
- *   Writes string data to the device at the specified address.
+ *   Acquires posession of the I2C bus and writes string data to the
+ *   device at the specified address.
  *
  * Parameters:
  *   dat  - a string containing data to be written
@@ -384,6 +394,8 @@ void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
  */
 void I2CBus::Write(const string& dat, uint8_t addr)
 {
+	lock_guard<mutex> lck(mtx);
+
     int len  = dat.size();
     int sent = 0;
 
@@ -402,8 +414,9 @@ void I2CBus::Write(const string& dat, uint8_t addr)
  * void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr)
  *
  * Description:
- *   Writes one or more bytes to the device, and then reads one or more bytes
- *   from the device at the specified I2C address.
+ *   Acquires posession of the I2C bus, writes one or more bytes to
+ *   the device, and then reads one or more bytes from the device at
+ *   the specified address.
  *
  * Parameters:
  *   odat    - data buffer that contains the data to be written
@@ -424,6 +437,8 @@ void I2CBus::Write(const string& dat, uint8_t addr)
  */
 void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr)
 {
+	lock_guard<mutex> lck(mtx);
+
     int count = 0;
 
     this->Open(i2caddr);
@@ -448,8 +463,9 @@ void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2ca
  * void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
  *
  * Description:
- *   Writes one byte to the device, and then reads one or more bytes from
- *   the device at the specified I2C address.
+ *   Acquires posession of the I2C bus, writes one byte to the device,
+ *   and then reads one or more bytes from the device at the specified
+ *   address.
  *
  * Parameters:
  *   addr    - one byte of data to be written to the device
@@ -469,6 +485,8 @@ void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2ca
  */
 void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
 {
+	lock_guard<mutex> lck(mtx);
+
     int count = 0;
 
     this->Open(i2caddr);
