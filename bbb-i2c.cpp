@@ -318,7 +318,7 @@ void I2CBus::Close()
  */
 void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
 {
-	lock_guard<mutex> lck(mtx);
+    lock_guard<mutex> lck(mtx);
 
     int recvd = 0;
 
@@ -357,7 +357,7 @@ void I2CBus::Read(uint8_t* data, int len, uint8_t addr)
  */
 void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
 {
-	lock_guard<mutex> lck(mtx);
+    lock_guard<mutex> lck(mtx);
 
     int sent = 0;
 
@@ -395,7 +395,7 @@ void I2CBus::Write(uint8_t* data, int len, uint8_t addr)
  */
 void I2CBus::Write(const string& dat, uint8_t addr)
 {
-	lock_guard<mutex> lck(mtx);
+    lock_guard<mutex> lck(mtx);
 
     int len  = dat.size();
     int sent = 0;
@@ -438,7 +438,7 @@ void I2CBus::Write(const string& dat, uint8_t addr)
  */
 void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr)
 {
-	lock_guard<mutex> lck(mtx);
+    lock_guard<mutex> lck(mtx);
 
     int count = 0;
 
@@ -486,7 +486,7 @@ void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2ca
  */
 void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
 {
-	lock_guard<mutex> lck(mtx);
+    lock_guard<mutex> lck(mtx);
 
     int count = 0;
 
