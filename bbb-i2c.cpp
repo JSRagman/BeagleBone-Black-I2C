@@ -460,53 +460,5 @@ void I2CBus::Xfer(uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2ca
     }
 }
 
-/*
- * void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
- *
- * Description:
- *   Acquires posession of the I2C bus, writes one byte to the device,
- *   and then reads one or more bytes from the device at the specified
- *   address.
- *
- * Parameters:
- *   addr    - one byte of data to be written to the device
- *   idat    - a buffer that will receive data read from the device
- *   ilen    - the number of bytes to be read
- *   i2caddr - I2C address of the target device
- *
- * Exceptions:
- *   I2CException
- *   I2CNotFoundException
- *
- * Namespace:
- *   bbbi2c
- *
- * Header File(s):
- *   bbb-i2c.hpp
- */
-void I2CBus::Xfer(uint8_t addr, uint8_t* idat, int ilen, uint8_t i2caddr)
-{
-    lock_guard<mutex> lck(mtx);
-
-    int count = 0;
-
-    this->Open(i2caddr);
-    count = ::write(file, &addr, 1);
-    if (count != 1)
-    {
-        this->Close();
-        I2CException iexc("I2CConnection::Xfer(addr, idat, ilen, i2caddr)", "Write length error.");
-        throw iexc;
-    }
-
-    count = ::read(file, idat, ilen);
-    this->Close();
-    if (count != ilen)
-    {
-        I2CException iexc("I2CConnection::Xfer(addr, idat, ilen, i2caddr)", "Read length error.");
-        throw iexc;
-    }
-}
-
 } // namespace bbbi2c
 ```
