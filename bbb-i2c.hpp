@@ -105,7 +105,6 @@ class I2CBus
     void Write ( uint8_t* data, int len, uint8_t i2caddr );
     void Write ( const string& dat, uint8_t i2caddr );
     void Xfer  ( uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr );
-    void Xfer  ( uint8_t  addr, uint8_t* idat, int ilen, uint8_t i2caddr );
 
 }; // class I2CBus
 
