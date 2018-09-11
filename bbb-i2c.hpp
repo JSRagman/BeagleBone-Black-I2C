@@ -1,3 +1,4 @@
+```
 /*
  * bbb-i2c.hpp
  *
@@ -47,25 +48,25 @@ namespace bbbi2c
  */
 class I2CException : public std::exception
 {
-protected:
-	string message;
-	string procname;
-	time_t timeof_exc;
+  protected:
+    string message;
+    string procname;
+    time_t timeof_exc;
 
-public:
-	I2CException (const string& msg, const string& proc);
+  public:
+    I2CException (const string& msg, const string& proc);
 
-	const char* what();
-	string who ();
-	string why ();
-	time_t when ();
+    const char* what();
+    string who ();
+    string why ();
+    time_t when ();
 };
 
 
 class I2CNotFoundException : public I2CException
 {
-public:
-	I2CNotFoundException ( const string& msg, const string& proc );
+  public:
+    I2CNotFoundException ( const string& msg, const string& proc );
 };
 
 
@@ -87,28 +88,28 @@ public:
  */
 class I2CBus
 {
-protected:
-	const char*  busfile;        // I2C bus file name.
-	int          file;           // File descriptor.
+  protected:
+    const char*  busfile;        // I2C bus file name.
+    int          file;           // File descriptor.
 
-	void Open  ( uint8_t addr );
-	void Close ();
+    void Open  ( uint8_t addr );
+    void Close ();
 
-public:
-	std::mutex mtx;
+  public:
+    std::mutex mtx;
 
-	I2CBus ( const char* bus );
-	~I2CBus ();
+    I2CBus ( const char* bus );
+   ~I2CBus ();
 
-	void Read  ( uint8_t* data, int len, uint8_t i2caddr );
-	void Write ( uint8_t* data, int len, uint8_t i2caddr );
-	void Write ( const string& dat, uint8_t i2caddr );
-	void Xfer  ( uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr );
-	void Xfer  ( uint8_t  addr, uint8_t* idat, int ilen, uint8_t i2caddr );
+    void Read  ( uint8_t* data, int len, uint8_t i2caddr );
+    void Write ( uint8_t* data, int len, uint8_t i2caddr );
+    void Write ( const string& dat, uint8_t i2caddr );
+    void Xfer  ( uint8_t* odat, int olen, uint8_t* idat, int ilen, uint8_t i2caddr );
+    void Xfer  ( uint8_t  addr, uint8_t* idat, int ilen, uint8_t i2caddr );
 
 }; // class I2CBus
-
 
 } // namespace bbbi2c
 
 #endif /* BBB_I2C_HPP_ */
+```
